@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Queue</title>
+</head>
+<body>
+    <h1>Черга <span th:text="${queue.name}"></span> створена!</h1>
+    <p>Ідентифікатор черги: <span th:text="${queue.id}"></span></p>
+    <p>Назва черги: <span th:text="${queue.name}"></span></p>
+    <h2>Місця у черзі</h2>
+    <ul>
+        <li th:each="place : ${queue.places}" th:text="${place.position + ': ' + place.userName}"></li>
+    </ul>
+
+    <form action="/queue/add" method="post">
+        <input type="hidden" name="queueId" th:value="${queue.id}" />
+        <label>Ім'я користувача: <input type="text" name="userName" /></label>
+        <button type="submit">Зайняти місце</button>
+    </form>
+
+    <form action="/queue/next" method="post">
+        <input type="hidden" name="queueId" th:value="${queue.id}" />
+        <button type="submit">Наступний</button>
+    </form>
+
+    <form action="/queue/close" method="post">
+        <input type="hidden" name="queueId" th:value="${queue.id}" />
+        <button type="submit">Закрити чергу</button>
+    </form>
+</body>
+</html>
