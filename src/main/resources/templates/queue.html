@@ -8,7 +8,20 @@
     <h1>Черга <span th:text="${queue.name}"></span> створена!</h1>
     <p>Ідентифікатор черги: <span th:text="${queue.id}"></span></p>
     <p>Назва черги: <span th:text="${queue.name}"></span></p>
-    <h2>Місця у черзі</h2>
+
+    <!-- Вибір стану черги -->
+    <div th:switch="${queue.isOpen()}">
+        <p th:case="true">Стан черги: Відкрита</p>
+        <p th:case="false">Стан черги: Закрита</p>
+        <p th:case="*">Стан черги: Невідомо</p>
+    </div>
+
+    <!-- Умовне форматування -->
+    <p th:if="${!queue.isOpen()}">Черга закрита для запису!</p>
+    <p th:unless="${!queue.isOpen()}">Черга відкрита, можна записуватись!</p>
+
+    <!-- Список користувачів -->
+    <h2 th:if="${queue.arePlaces()}">Місця у черзі:</h2>
     <ul>
         <li th:each="place : ${queue.places}" th:text="${place.position + ': ' + place.userName}"></li>
     </ul>

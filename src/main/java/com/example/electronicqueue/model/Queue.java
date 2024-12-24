@@ -37,6 +37,10 @@ public class Queue {
         return places;
     }
 
+    public boolean arePlaces() {
+        return !places.isEmpty();
+    }
+
     public void setPlaces(List<Place> places) {
         this.places = places;
     }
