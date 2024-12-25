@@ -5,6 +5,8 @@ import com.example.electronicqueue.model.*;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
 import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Service
@@ -26,8 +28,9 @@ public class QueueService {
         return queueRepository.findById(id);
     }
 
-    public void deleteQueue(String id) {
-        queueRepository.delete(id);
+    // Видалення черги
+    public boolean deleteQueue(String id) {
+        return queueRepository.delete(id);
     }
 
     // Додавання користувача до черги
@@ -72,4 +75,36 @@ public class QueueService {
         Queue queue = queueRepository.findById(queueId).orElseThrow();
         queue.setOpen(false);
     }
+
+    public List<Queue> getAllQueues() {
+        return new ArrayList<>(queueRepository.findAll());
+    }
+
+    public Optional<Queue> getQueueById(String id) {
+        return queueRepository.findById(id);
+    }
+
+    public Optional<Queue> updateQueue(String id, String newName) {
+        Optional<Queue> queue = queueRepository.findById(id);
+        queue.ifPresent(q -> {
+            q.setName(newName);
+            queueRepository.save(q);
+        });
+        return queue;
+    }
+
+    public List<Queue> filterQueuesByName(String name) {
+        return queueRepository.findAll().stream()
+                .filter(queue -> queue.getName().contains(name))
+                .toList();
+    }
+
+    // Pagination
+    public List<Queue> getQueuesByPage(int page, int size) {
+        List<Queue> allQueues = new ArrayList<>(queueRepository.findAll());
+        int fromIndex = Math.min(page * size, allQueues.size());
+        int toIndex = Math.min(fromIndex + size, allQueues.size());
+        return allQueues.subList(fromIndex, toIndex);
+    }
+
 }

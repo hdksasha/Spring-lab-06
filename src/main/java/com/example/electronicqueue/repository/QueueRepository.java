@@ -17,7 +17,14 @@ public class QueueRepository {
         return Optional.ofNullable(queues.get(id));
     }
 
-    public void delete(String id) {
-        queues.remove(id);
+    // Знайти всі черги
+    public List<Queue> findAll() {
+        return new ArrayList<>(queues.values());
     }
+
+    // Видалити чергу
+    public boolean delete(String id) {
+        return queues.remove(id) != null;
+    }
+
 }
