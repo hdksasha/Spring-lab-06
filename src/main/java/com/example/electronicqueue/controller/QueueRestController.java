@@ -2,7 +2,6 @@ package com.example.electronicqueue.controller;
 
 import com.example.electronicqueue.model.Queue;
 import com.example.electronicqueue.service.QueueService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,12 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/queues")
@@ -23,7 +20,6 @@ public class QueueRestController {
 
     private final QueueService queueService;
 
-    @Autowired
     public QueueRestController(QueueService queueService) {
         this.queueService = queueService;
     }
@@ -35,9 +31,9 @@ public class QueueRestController {
             @ApiResponse(responseCode = "400", description = "Неправильний запит")
     })
     @PostMapping
-    public ResponseEntity<Queue> createQueue(@RequestBody Queue queue) {
-        Queue createdQueue = queueService.createQueue(queue.getName());
-        return new ResponseEntity<>(createdQueue, HttpStatus.CREATED);
+    public ResponseEntity<Integer> createQueue(@RequestParam @Schema(required = true) String name, @RequestParam boolean isOpen) {
+        int id = queueService.createQueue(name, isOpen);
+        return new ResponseEntity<>(id, HttpStatus.CREATED);
     }
 
     @Operation(summary = "Отримання списку всіх черг", description = "Повертає список усіх черг у системі.")
@@ -58,10 +54,9 @@ public class QueueRestController {
             @ApiResponse(responseCode = "404", description = "Черга не знайдена")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Queue> getQueueById(@PathVariable String id) {
-        Optional<Queue> queue = queueService.getQueueById(id);
-        return queue.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    public ResponseEntity<Queue> getQueueById(@PathVariable int id) {
+        Queue queue = queueService.getQueueById(id);
+        return queue != null ? ResponseEntity.ok(queue) : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @Operation(summary = "Оновлення черги", description = "Оновлює дані черги за заданим ID.")
@@ -70,10 +65,9 @@ public class QueueRestController {
             @ApiResponse(responseCode = "404", description = "Черга не знайдена")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<Queue> updateQueue(@PathVariable String id, @RequestBody Queue updatedQueue) {
-        Optional<Queue> queue = queueService.updateQueue(id, updatedQueue.getName());
-        return queue.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    public ResponseEntity<Void> updateQueue(@PathVariable int id, @RequestParam String name, @RequestParam boolean isOpen) {
+        int updatedRows = queueService.updateQueue(id, name, isOpen);
+        return updatedRows > 0 ? ResponseEntity.noContent().build() : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @Operation(summary = "Видалення черги", description = "Видаляє чергу за заданим ID.")
@@ -82,22 +76,59 @@ public class QueueRestController {
             @ApiResponse(responseCode = "404", description = "Черга не знайдена")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteQueue(@PathVariable String id) {
-        boolean deleted = queueService.deleteQueue(id);
-        return deleted ? ResponseEntity.noContent().build() : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    public ResponseEntity<Void> deleteQueue(@PathVariable int id) {
+        int deletedRows = queueService.deleteQueue(id);
+        return deletedRows > 0 ? ResponseEntity.noContent().build() : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
-    @GetMapping("/filter")
-    public ResponseEntity<List<Queue>> filterQueuesByName(@RequestParam String name) {
-        List<Queue> filteredQueues = queueService.filterQueuesByName(name);
-        return ResponseEntity.ok(filteredQueues);
+    @Operation(
+            summary = "Видалення черги разом із місцями",
+            description = "Видаляє чергу за ID і всі пов’язані з нею місця."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Чергу та місця успішно видалено"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Черга не знайдена"
+            )
+    })
+    @DeleteMapping("/{id}/with-places")
+    public ResponseEntity<Void> deleteQueueAndPlaces(@PathVariable int id) {
+        queueService.deleteQueueAndPlaces(id);
+        return ResponseEntity.noContent().build();
     }
 
-    // Pagination
-    @GetMapping("/page")
-    public ResponseEntity<List<Queue>> getQueuesByPage(@RequestParam int page, @RequestParam int size) {
-        List<Queue> paginatedQueues = queueService.getQueuesByPage(page, size);
-        return ResponseEntity.ok(paginatedQueues);
+    @Operation(
+            summary = "Фільтрація черг за статусом",
+            description = "Повертає список черг, які відповідають заданому статусу (відкриті або закриті)."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Список черг отримано успішно",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = Queue.class)))
+            ),
+            @ApiResponse(responseCode = "400", description = "Неправильний запит")
+    })
+    @GetMapping("/filter/status")
+    public ResponseEntity<List<Queue>> filterQueuesByStatus(@RequestParam boolean isOpen) {
+        List<Queue> queues = queueService.filterQueuesByStatus(isOpen);
+        return ResponseEntity.ok(queues);
     }
 
+
+//    @GetMapping("/filter")
+//    public ResponseEntity<List<Queue>> filterQueuesByName(@RequestParam String name) {
+//        List<Queue> filteredQueues = queueService.filterQueuesByName(name);
+//        return ResponseEntity.ok(filteredQueues);
+//    }
+//
+//    @GetMapping("/page")
+//    public ResponseEntity<List<Queue>> getQueuesByPage(@RequestParam int page, @RequestParam int size) {
+//        List<Queue> paginatedQueues = queueService.getQueuesByPage(page, size);
+//        return ResponseEntity.ok(paginatedQueues);
+//    }
 }

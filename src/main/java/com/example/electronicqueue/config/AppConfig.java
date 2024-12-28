@@ -1,5 +1,6 @@
 package com.example.electronicqueue.config;
 
+import com.example.electronicqueue.repository.PlaceRepository;
 import com.example.electronicqueue.service.QueueService;
 import com.example.electronicqueue.repository.QueueRepository;
 import com.example.electronicqueue.model.Place;
@@ -12,8 +13,8 @@ public class AppConfig {
 
     @Bean
     @Scope("singleton")
-    public QueueService singletonQueueService(QueueRepository queueRepository) {
-        return new QueueService(queueRepository);
+    public QueueService singletonQueueService(QueueRepository queueRepository, PlaceRepository placeRepository) {
+        return new QueueService(queueRepository, placeRepository);
     }
 
     @Bean

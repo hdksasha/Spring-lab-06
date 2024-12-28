@@ -1,8 +1,27 @@
 package com.example.electronicqueue.model;
 
 public class Place {
-    private int position;
-    private String userName;
+    private int id;          // Primary key
+    private int queueId;     // Зовнішній ключ на Queue
+    private int position;    // Позиція в черзі
+    private String userName; // Ім'я користувача
+
+    // Getters і Setters
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getQueueId() {
+        return queueId;
+    }
+
+    public void setQueueId(int queueId) {
+        this.queueId = queueId;
+    }
 
     public int getPosition() {
         return position;
@@ -20,4 +39,3 @@ public class Place {
         this.userName = userName;
     }
 }
-

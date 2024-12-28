@@ -1,19 +1,24 @@
 package com.example.electronicqueue.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 
 public class Queue {
-    private String id;
-    private String name;
-    private boolean isOpen = true; // Черга відкрита для запису
-    private List<Place> places = new ArrayList<>();
+    @NotNull
+    private int id;         // Primary key
 
-    public String getId() {
+    @NotNull
+    @Size(min = 1, max = 255)
+    private String name;    // Назва черги
+
+    private boolean isOpen = true;
+
+    public int getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -32,17 +37,4 @@ public class Queue {
     public void setOpen(boolean open) {
         isOpen = open;
     }
-
-    public List<Place> getPlaces() {
-        return places;
-    }
-
-    public boolean arePlaces() {
-        return !places.isEmpty();
-    }
-
-    public void setPlaces(List<Place> places) {
-        this.places = places;
-    }
 }
-
